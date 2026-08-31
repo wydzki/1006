@@ -111,7 +111,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- Scripts:
 
-local function EOSVMQQ_fake_script() -- TextLabel.LocalScript 
+local function UBHVBWD_fake_script() -- TextLabel.LocalScript 
 	local script = Instance.new('LocalScript', TextLabel)
 
 	local label = script.Parent
@@ -157,8 +157,8 @@ local function EOSVMQQ_fake_script() -- TextLabel.LocalScript
 		runCorruptCycle()
 	end
 end
-coroutine.wrap(EOSVMQQ_fake_script)()
-local function JSPUD_fake_script() -- input.LocalScript 
+coroutine.wrap(UBHVBWD_fake_script)()
+local function YXHGAGK_fake_script() -- input.LocalScript 
 	local script = Instance.new('LocalScript', input)
 
 	local input = script.Parent
@@ -193,8 +193,8 @@ local function JSPUD_fake_script() -- input.LocalScript
 	end)
 	
 end
-coroutine.wrap(JSPUD_fake_script)()
-local function IACZOUZ_fake_script() -- topbar.LocalScript 
+coroutine.wrap(YXHGAGK_fake_script)()
+local function ICVODVW_fake_script() -- topbar.LocalScript 
 	local script = Instance.new('LocalScript', topbar)
 
 	local topbar = script.Parent
@@ -230,8 +230,8 @@ local function IACZOUZ_fake_script() -- topbar.LocalScript
 		end
 	end)
 end
-coroutine.wrap(IACZOUZ_fake_script)()
-local function GKUPQ_fake_script() -- ScrollingFrame.LocalScript 
+coroutine.wrap(ICVODVW_fake_script)()
+local function RJBHD_fake_script() -- ScrollingFrame.LocalScript 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 
 	local Players = game:GetService("Players")
@@ -743,7 +743,7 @@ local function GKUPQ_fake_script() -- ScrollingFrame.LocalScript
 		elseif cmd == "help" then
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
-			createGlowLabel("Available commands:", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 0))
+			createGlowLabel("available commands:", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 0))
 			createOutputLabel("  help            - shows this help menu")
 			createOutputLabel("  clear / cls     - clears the terminal")
 			createOutputLabel("  1006            - displays info about 1006")
@@ -760,9 +760,9 @@ local function GKUPQ_fake_script() -- ScrollingFrame.LocalScript
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 			createGlowLabel("[ 1006 ]", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
-			createOutputLabel("SCP-1006 Terminal System")
+			createOutputLabel("yuurt")
 			createOutputLabel("Version 1.0.0")
-			createGlowLabel("Status: ONLINE", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
+			createGlowLabel("status: WIP", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 	
 			-- OWN
@@ -772,7 +772,7 @@ local function GKUPQ_fake_script() -- ScrollingFrame.LocalScript
 			createGlowLabel("Ownership Info:", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 0))
 			createOutputLabel("  User: " .. localPlayer.Name)
 			createOutputLabel("  UserId: " .. localPlayer.UserId)
-			createGlowLabel("  Access Level: root", Color3.fromRGB(200, 100, 0), Color3.fromRGB(255, 180, 50))
+			createGlowLabel("  Access Level: guest", Color3.fromRGB(200, 100, 0), Color3.fromRGB(255, 180, 50))
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 	
 			-- AUTOFISHING START
@@ -857,8 +857,8 @@ local function GKUPQ_fake_script() -- ScrollingFrame.LocalScript
 		end
 	end)
 end
-coroutine.wrap(GKUPQ_fake_script)()
-local function SRLYUB_fake_script() -- mainframe.LocalScript 
+coroutine.wrap(RJBHD_fake_script)()
+local function YRNAA_fake_script() -- mainframe.LocalScript 
 	local script = Instance.new('LocalScript', mainframe)
 
 	local UserInputService = game:GetService("UserInputService")
@@ -871,4 +871,4 @@ local function SRLYUB_fake_script() -- mainframe.LocalScript
 			end
 		end)
 end
-coroutine.wrap(SRLYUB_fake_script)()
+coroutine.wrap(YRNAA_fake_script)()
