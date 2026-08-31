@@ -111,7 +111,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- Scripts:
 
-local function DIJXN_fake_script() -- TextLabel.LocalScript 
+local function WNJD_fake_script() -- TextLabel.LocalScript 
 	local script = Instance.new('LocalScript', TextLabel)
 
 	local label = script.Parent
@@ -157,8 +157,8 @@ local function DIJXN_fake_script() -- TextLabel.LocalScript
 		runCorruptCycle()
 	end
 end
-coroutine.wrap(DIJXN_fake_script)()
-local function RGLUCE_fake_script() -- input.LocalScript 
+coroutine.wrap(WNJD_fake_script)()
+local function XKQCW_fake_script() -- input.LocalScript 
 	local script = Instance.new('LocalScript', input)
 
 	local input = script.Parent
@@ -193,8 +193,8 @@ local function RGLUCE_fake_script() -- input.LocalScript
 	end)
 	
 end
-coroutine.wrap(RGLUCE_fake_script)()
-local function NBUTXNZ_fake_script() -- topbar.LocalScript 
+coroutine.wrap(XKQCW_fake_script)()
+local function GAVXIOK_fake_script() -- topbar.LocalScript 
 	local script = Instance.new('LocalScript', topbar)
 
 	local topbar = script.Parent
@@ -230,8 +230,8 @@ local function NBUTXNZ_fake_script() -- topbar.LocalScript
 		end
 	end)
 end
-coroutine.wrap(NBUTXNZ_fake_script)()
-local function AGGLN_fake_script() -- ScrollingFrame.LocalScript 
+coroutine.wrap(GAVXIOK_fake_script)()
+local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 
 	local Players = game:GetService("Players")
@@ -654,6 +654,23 @@ local function AGGLN_fake_script() -- ScrollingFrame.LocalScript
 		local root = getRoot()
 		if not root then isSelling = false return end
 	
+		-- Check if there's actually anything to sell before moving
+		local itemsFolder = getItemsFolder()
+		local hasSomething = false
+		if itemsFolder then
+			for _, itemData in ipairs(itemsToSell) do
+				local v = itemsFolder:FindFirstChild(itemData.name)
+				if v and v:IsA("NumberValue") and v.Value > 0 then
+					hasSomething = true
+					break
+				end
+			end
+		end
+		if not hasSomething then
+			isSelling = false
+			return
+		end
+	
 		local originalCFrame = root.CFrame
 		unequipRod()
 		tweenTo(SHOP_POSITION)
@@ -662,23 +679,37 @@ local function AGGLN_fake_script() -- ScrollingFrame.LocalScript
 		task.wait(0.5)
 	
 		local ted = Workspace:WaitForChild("Map"):WaitForChild("Interactable"):WaitForChild("Ted")
+		-- Re-fetch folder in case it refreshed
+		itemsFolder = getItemsFolder()
+	
 		for _, itemData in ipairs(itemsToSell) do
-			fireRemote({
-				buffer.fromstring("\001\001\001\021\000ShopGUI/ExecuteAction"),
-				{
-					["1"] = { Count = 1, List = {{
-						ShopType   = "Ted",
-						Action     = "Sell",
-						ItemData   = { LayoutWeight = itemData.weight, Type = "Item", SellPrice = itemData.price },
-						Item       = itemData.name,
-						OwnerModel = ted,
-						ShopTab    = "Regular",
-						Amount     = 99
-					}}},
-					n = 1
-				}
-			})
-			task.wait(0.15)
+			-- Read live count from Data.Storage.Items
+			local amount = 0
+			if itemsFolder then
+				local v = itemsFolder:FindFirstChild(itemData.name)
+				if v and v:IsA("NumberValue") then
+					amount = v.Value
+				end
+			end
+	
+			if amount > 0 then
+				fireRemote({
+					buffer.fromstring("\001\001\001\021\000ShopGUI/ExecuteAction"),
+					{
+						["1"] = { Count = 1, List = {{
+							ShopType   = "Ted",
+							Action     = "Sell",
+							ItemData   = { LayoutWeight = itemData.weight, Type = "Item", SellPrice = itemData.price },
+							Item       = itemData.name,
+							OwnerModel = ted,
+							ShopTab    = "Regular",
+							Amount     = amount
+						}}},
+						n = 1
+					}
+				})
+				task.wait(0.15)
+			end
 		end
 	
 		task.wait(0.5)
@@ -689,13 +720,17 @@ local function AGGLN_fake_script() -- ScrollingFrame.LocalScript
 		isSelling = false
 	end
 	
+	-- Sell timer only runs while autofish is active
 	local function startSellTimer()
 		if sellThread then task.cancel(sellThread) end
 		sellThread = task.spawn(function()
-			while true do
+			while fishing do
 				task.wait(SELL_INTERVAL)
-				sellAllItems()
+				if fishing then
+					sellAllItems()
+				end
 			end
+			sellThread = nil
 		end)
 	end
 	
@@ -827,8 +862,6 @@ local function AGGLN_fake_script() -- ScrollingFrame.LocalScript
 			slotted = true
 		end
 	
-		-- FIX: tryUseArrow no longer checks arrow count — it loops forever,
-		-- equipping and using one arrow per iteration until arrowFarming stops.
 		local function tryUseArrow()
 			if not isArrowEquipped() then
 				equipArrow()
@@ -845,12 +878,15 @@ local function AGGLN_fake_script() -- ScrollingFrame.LocalScript
 		end
 	
 		if skipCollect then
-			-- usearrows command: keep using until stopped, regardless of count
+			-- usearrows: drain inventory arrows, then stop cleanly
 			while arrowFarming do
-				if getItemCount("Stand Arrow") > 0 then
+				local count = getItemCount("Stand Arrow")
+				if count > 0 then
 					tryUseArrow()
 				else
-					task.wait(0.5)
+					-- no arrows left — exit instead of spinning forever
+					arrowFarming = false
+					break
 				end
 			end
 		else
@@ -1222,12 +1258,10 @@ local function AGGLN_fake_script() -- ScrollingFrame.LocalScript
 	-- INIT
 	-- =====================================================================
 	
-	startSellTimer()
 	print("=== 1006 Terminal Loaded ===")
-	
 end
-coroutine.wrap(AGGLN_fake_script)()
-local function XXZDL_fake_script() -- mainframe.LocalScript 
+coroutine.wrap(XCHDUSE_fake_script)()
+local function MVQWXLC_fake_script() -- mainframe.LocalScript 
 	local script = Instance.new('LocalScript', mainframe)
 
 	local UserInputService = game:GetService("UserInputService")
@@ -1240,4 +1274,4 @@ local function XXZDL_fake_script() -- mainframe.LocalScript
 			end
 		end)
 end
-coroutine.wrap(XXZDL_fake_script)()
+coroutine.wrap(MVQWXLC_fake_script)()
