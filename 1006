@@ -111,7 +111,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- Scripts:
 
-local function FBFYCDR_fake_script() -- TextLabel.LocalScript 
+local function NIEC_fake_script() -- TextLabel.LocalScript 
 	local script = Instance.new('LocalScript', TextLabel)
 
 	local label = script.Parent
@@ -157,8 +157,8 @@ local function FBFYCDR_fake_script() -- TextLabel.LocalScript
 		runCorruptCycle()
 	end
 end
-coroutine.wrap(FBFYCDR_fake_script)()
-local function ZZWEL_fake_script() -- input.LocalScript 
+coroutine.wrap(NIEC_fake_script)()
+local function CHUY_fake_script() -- input.LocalScript 
 	local script = Instance.new('LocalScript', input)
 
 	local input = script.Parent
@@ -193,8 +193,8 @@ local function ZZWEL_fake_script() -- input.LocalScript
 	end)
 	
 end
-coroutine.wrap(ZZWEL_fake_script)()
-local function YGZQG_fake_script() -- topbar.LocalScript 
+coroutine.wrap(CHUY_fake_script)()
+local function XVWONFZ_fake_script() -- topbar.LocalScript 
 	local script = Instance.new('LocalScript', topbar)
 
 	local topbar = script.Parent
@@ -230,8 +230,8 @@ local function YGZQG_fake_script() -- topbar.LocalScript
 		end
 	end)
 end
-coroutine.wrap(YGZQG_fake_script)()
-local function NTYNK_fake_script() -- ScrollingFrame.LocalScript 
+coroutine.wrap(XVWONFZ_fake_script)()
+local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 
 	local Players = game:GetService("Players")
@@ -311,24 +311,25 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	end
 	
 	-- =====================================================================
-	-- AUTO FISH + SELL SYSTEM
+	-- CONFIGURATION
 	-- =====================================================================
 	
-	local HOLD_DURATION      = 0.2
-	local MAX_SPAM_TIME      = 10
-	local UI_TIMEOUT         = 10
-	local RE_CAST_DELAY      = 0.3
-	local SELL_INTERVAL      = 600
-	local TWEEN_SPEED        = 50
-	local ARROW_TWEEN_SPEED  = 20
+	local HOLD_DURATION     = 0.2
+	local MAX_SPAM_TIME     = 10
+	local UI_TIMEOUT        = 10
+	local RE_CAST_DELAY     = 0.3
+	local SELL_INTERVAL     = 600
+	local TWEEN_SPEED       = 50
+	local ARROW_TWEEN_SPEED = 20
+	local CAMERA_THRESHOLD  = 9
+	local STW_CAMERA_TARGET = 9
+	local STW_ARROW_TARGET  = 50
 	
-	local SHOP_POSITION      = Vector3.new(-372, -3, -171)
-	local DOCK_POSITIONS     = {
+	local SHOP_POSITION  = Vector3.new(-372, -3, -171)
+	local DOCK_POSITIONS = {
 		Vector3.new(-329, -5, -77),
 		Vector3.new(-342, -5, -76),
 	}
-	local ARROW_USE_POSITION = Vector3.new(-153, -9, 327)
-	local CAMERA_THRESHOLD   = 9
 	
 	local itemsToSell = {
 		{ name = "Shrimp",            weight = 1, price = 25  },
@@ -345,31 +346,21 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		{ name = "Trumpet Fish",      weight = 5, price = 500 },
 	}
 	
+	-- =====================================================================
+	-- STATE
+	-- =====================================================================
+	
 	local isSelling    = false
 	local fishing      = false
 	local arrowFarming = false
 	local stwFarming   = false
 	local farmThread   = nil
 	local sellThread   = nil
-	local nextSellAt   = os.clock() + SELL_INTERVAL
 	
-	local guiStatusLabel   = nil
-	local guiStartFishBtn  = nil
-	local guiStartArrowBtn = nil
-	local guiSTWBtn        = nil
-	
-	local function setStatus(text)
-		if guiStatusLabel then guiStatusLabel.Text = text end
-	end
-	
-	-- Input focus tracker — pauses autoclicker while typing
+	-- Input focus — pauses autoclicker while typing in terminal
 	local inputFocused = false
-	input.Focused:Connect(function()
-		inputFocused = true
-	end)
-	input.FocusLost:Connect(function()
-		inputFocused = false
-	end)
+	input.Focused:Connect(function() inputFocused = true end)
+	input.FocusLost:Connect(function() inputFocused = false end)
 	
 	-- =====================================================================
 	-- REMOTE HELPER
@@ -390,7 +381,7 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	end
 	
 	-- =====================================================================
-	-- CHARACTER / TWEEN HELPERS
+	-- CHARACTER / TWEEN
 	-- =====================================================================
 	
 	local function getCharacter()
@@ -416,6 +407,20 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		)
 		tween:Play()
 		tween.Completed:Wait()
+	end
+	
+	local function returnToDock()
+		local root = getRoot()
+		local bestDock = DOCK_POSITIONS[1]
+		if root then
+			local bestDist = math.huge
+			for _, pos in ipairs(DOCK_POSITIONS) do
+				local d = (root.Position - pos).Magnitude
+				if d < bestDist then bestDist = d; bestDock = pos end
+			end
+		end
+		tweenTo(bestDock, ARROW_TWEEN_SPEED)
+		task.wait(0.5)
 	end
 	
 	-- =====================================================================
@@ -446,13 +451,6 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	
 	local function getCameraCount()
 		return getItemCount("Camera")
-	end
-	
-	local function isArrowEquipped()
-		local entities = Workspace:FindFirstChild("Entities")
-		if not entities then return false end
-		local pe = entities:FindFirstChild(localPlayer.Name)
-		return pe and pe:FindFirstChild("Stand Arrow") ~= nil
 	end
 	
 	-- =====================================================================
@@ -546,6 +544,13 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		})
 	end
 	
+	local function isArrowEquipped()
+		local entities = Workspace:FindFirstChild("Entities")
+		if not entities then return false end
+		local pe = entities:FindFirstChild(localPlayer.Name)
+		return pe and pe:FindFirstChild("Stand Arrow") ~= nil
+	end
+	
 	local function useArrow()
 		local landgrass = Workspace
 			:WaitForChild("Map")
@@ -598,6 +603,7 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	-- =====================================================================
 	
 	local centerX, centerY = 640, 360
+	
 	local function updateCenter()
 		local cam = Workspace.CurrentCamera
 		if cam then
@@ -644,8 +650,6 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	local function sellAllItems()
 		if isSelling then return end
 		isSelling = true
-		nextSellAt = os.clock() + SELL_INTERVAL
-		setStatus("selling fish...")
 	
 		local root = getRoot()
 		if not root then isSelling = false return end
@@ -683,6 +687,16 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		tweenTo(originalCFrame)
 		task.wait(0.5)
 		isSelling = false
+	end
+	
+	local function startSellTimer()
+		if sellThread then task.cancel(sellThread) end
+		sellThread = task.spawn(function()
+			while true do
+				task.wait(SELL_INTERVAL)
+				sellAllItems()
+			end
+		end)
 	end
 	
 	-- =====================================================================
@@ -776,6 +790,13 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		end
 	end
 	
+	task.spawn(function()
+		while true do
+			updateESP()
+			task.wait(0.5)
+		end
+	end)
+	
 	-- =====================================================================
 	-- PROXIMITY PROMPT E-SPAM
 	-- =====================================================================
@@ -801,7 +822,7 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		arrowFarming = true
 		local slotted = false
 	
-		if itemExists("Stand Arrow") and not slotted then
+		if itemExists("Stand Arrow") then
 			slotEquipArrow()
 			slotted = true
 		end
@@ -819,24 +840,19 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 			task.wait(1)
 			storeStand()
 			task.wait(0.5)
-			local remaining = getItemCount("Stand Arrow")
-			setStatus(string.format("arrows: %d left", remaining))
 		end
 	
 		if skipCollect then
-			setStatus("arrows: using")
 			while arrowFarming and getItemCount("Stand Arrow") > 0 do
 				tryUseArrow()
 			end
 		else
-			setStatus("arrows: collecting + using")
 			while arrowFarming do
 				local targets = getArrowTargets()
 				if #targets == 0 then
 					if getItemCount("Stand Arrow") > 0 then
 						tryUseArrow()
 					else
-						setStatus("arrows: waiting for spawn")
 						task.wait(1)
 					end
 					continue
@@ -844,7 +860,6 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 				for _, target in ipairs(targets) do
 					if not arrowFarming then break end
 					if not target.handle.Parent then continue end
-					setStatus("arrows: moving")
 					tweenTo(target.handle.Position)
 					if not arrowFarming then break end
 					task.wait(0.2)
@@ -866,32 +881,16 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	
 		if not arrowFarming then
 			clearESP()
-			setStatus("stopped")
 			return
 		end
 	
-		setStatus("arrows: returning to dock")
-		local root = getRoot()
-		local bestDock = DOCK_POSITIONS[1]
-		if root then
-			local bestDist = math.huge
-			for _, pos in ipairs(DOCK_POSITIONS) do
-				local d = (root.Position - pos).Magnitude
-				if d < bestDist then bestDist = d; bestDock = pos end
-			end
-		end
-		tweenTo(bestDock, ARROW_TWEEN_SPEED)
-		task.wait(0.5)
-	
+		returnToDock()
 		arrowFarming = false
 		clearESP()
 	
 		if fishing then
-			setStatus("fishing")
 			if farmThread then task.cancel(farmThread) end
-			farmThread = task.spawn(function() _G.__fishCycle() end)
-		else
-			setStatus("stopped")
+			farmThread = task.spawn(fishCycle)
 		end
 	end
 	
@@ -899,186 +898,20 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	local function startArrowFarm() arrowFarmCycle(false) end
 	
 	-- =====================================================================
-	-- STW FARM CYCLE
-	-- =====================================================================
-	
-	local STW_CAMERA_TARGET = 9
-	local STW_ARROW_TARGET  = 50
-	
-	local function stwFarmCycle()
-		stwFarming = true
-	
-		local function stopCheck() return not stwFarming end
-	
-		local function returnToDock()
-			local root = getRoot()
-			local bestDock = DOCK_POSITIONS[1]
-			if root then
-				local bestDist = math.huge
-				for _, pos in ipairs(DOCK_POSITIONS) do
-					local d = (root.Position - pos).Magnitude
-					if d < bestDist then bestDist = d; bestDock = pos end
-				end
-			end
-			tweenTo(bestDock, ARROW_TWEEN_SPEED)
-			task.wait(0.5)
-		end
-	
-		while stwFarming do
-			-- Phase 1: Fish until cameras
-			setStatus("STW: fishing for cameras...")
-			while stwFarming and getCameraCount() < STW_CAMERA_TARGET do
-				while isSelling and stwFarming do task.wait(0.5) end
-				if stopCheck() then break end
-				if not ensureEquipped() then task.wait(1); continue end
-				castRod()
-				local fishingUI = PlayerGui:WaitForChild("FishingUI", 2)
-				local uiAppeared = false
-				if fishingUI then
-					if fishingUI.Enabled then
-						uiAppeared = true
-					else
-						local appeared = false
-						local conn = fishingUI:GetPropertyChangedSignal("Enabled"):Connect(function()
-							if fishingUI.Enabled then appeared = true end
-						end)
-						local t0 = os.clock()
-						while not appeared and stwFarming and (os.clock() - t0 < UI_TIMEOUT) do
-							task.wait()
-						end
-						conn:Disconnect()
-						uiAppeared = appeared or fishingUI.Enabled
-					end
-				end
-				if not stwFarming then break end
-				if not uiAppeared then equipRod(); task.wait(RE_CAST_DELAY); continue end
-				local spamStart = os.clock()
-				while stwFarming and not isSelling and isFishingUIActive()
-					and (os.clock() - spamStart < MAX_SPAM_TIME) do
-					spamAction()
-				end
-				if not stwFarming then break end
-				equipRod(); task.wait(RE_CAST_DELAY)
-			end
-	
-			if stopCheck() then break end
-			unequipRod()
-	
-			-- Phase 2: Collect + use 50 arrows
-			setStatus("STW: collecting arrows...")
-			arrowFarming = true
-			local slotted = itemExists("Stand Arrow")
-			if slotted then slotEquipArrow() end
-	
-			local function stwTryUseArrow()
-				if not isArrowEquipped() then
-					equipArrow()
-					local t0 = os.clock()
-					while stwFarming and arrowFarming and not isArrowEquipped() and os.clock() - t0 < 2 do
-						task.wait(0.1)
-					end
-				end
-				if not isArrowEquipped() then return end
-				useArrow()
-				task.wait(1)
-				storeStand()
-				task.wait(0.5)
-			end
-	
-			local usesCompleted = 0
-			while stwFarming and usesCompleted < STW_ARROW_TARGET do
-				if stopCheck() then break end
-				local targets = getArrowTargets()
-				if #targets == 0 then
-					if getItemCount("Stand Arrow") > 0 then
-						setStatus(string.format("STW: arrows %d/%d, using...", usesCompleted, STW_ARROW_TARGET))
-						stwTryUseArrow()
-						usesCompleted += 1
-					else
-						setStatus(string.format("STW: waiting for arrows (%d/%d)", usesCompleted, STW_ARROW_TARGET))
-						task.wait(1)
-					end
-					continue
-				end
-				for _, target in ipairs(targets) do
-					if not stwFarming or usesCompleted >= STW_ARROW_TARGET then break end
-					if not target.handle.Parent then continue end
-					setStatus(string.format("STW: arrow %d/%d", usesCompleted, STW_ARROW_TARGET))
-					tweenTo(target.handle.Position)
-					if not stwFarming then break end
-					task.wait(0.2)
-					local hadCount = getItemCount("Stand Arrow")
-					spamEOnTarget(target)
-					task.wait(0.5)
-					if not stwFarming then break end
-					local newCount = getItemCount("Stand Arrow")
-					if newCount > 0 and not slotted then
-						slotEquipArrow()
-						slotted = true
-					end
-					if newCount > hadCount then
-						stwTryUseArrow()
-						usesCompleted += 1
-					end
-				end
-			end
-	
-			arrowFarming = false
-			clearESP()
-			if stopCheck() then break end
-	
-			-- Phase 3: Use cameras
-			setStatus("STW: equipping The World...")
-			slotEquipCamera()
-			task.wait(0.3)
-			equipTheWorld()
-			task.wait(0.5)
-			while stwFarming and getCameraCount() > 0 do
-				if stopCheck() then break end
-				equipCamera()
-				task.wait(0.5)
-				useCamera()
-				task.wait(0.5)
-				setStatus(string.format("STW: cameras %d left", getCameraCount()))
-			end
-	
-			if stopCheck() then break end
-	
-			-- Phase 4: Return and repeat
-			setStatus("STW: returning to dock...")
-			returnToDock()
-			task.wait(0.5)
-		end
-	
-		arrowFarming = false
-		clearESP()
-		stwFarming = false
-		if guiSTWBtn then
-			guiSTWBtn.Text       = "STW farm"
-			guiSTWBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		end
-		setStatus("stopped")
-	end
-	
-	-- =====================================================================
 	-- FISHING CYCLE
 	-- =====================================================================
 	
-	local function fishCycle()
-		setStatus("fishing")
+	-- forward declare so arrowFarmCycle can reference it
+	fishCycle = function()
 		while fishing do
 			if getCameraCount() > CAMERA_THRESHOLD then
 				fishing = false
-				if guiStartFishBtn then
-					guiStartFishBtn.Text       = "start fishing farm"
-					guiStartFishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				end
+				createGlowLabel("camera threshold hit — switching to arrow farm", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
 				task.spawn(startArrowFarm)
 				return
 			end
 	
 			while isSelling and fishing do task.wait(0.5) end
-	
 			if not ensureEquipped() then task.wait(1); continue end
 	
 			castRod()
@@ -1098,275 +931,125 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 			if not fishing then break end
 			equipRod(); task.wait(RE_CAST_DELAY)
 		end
-		setStatus("stopped")
 	end
 	
-	_G.__fishCycle = fishCycle
-	
 	-- =====================================================================
-	-- SELL TIMER
+	-- STW FARM CYCLE
 	-- =====================================================================
 	
-	local function startSellTimer()
-		if sellThread then task.cancel(sellThread) end
-		nextSellAt = os.clock() + SELL_INTERVAL
-		sellThread = task.spawn(function()
-			while true do
-				task.wait(SELL_INTERVAL)
-				sellAllItems()
-				nextSellAt = os.clock() + SELL_INTERVAL
+	local function stwFarmCycle()
+		stwFarming = true
+	
+		while stwFarming do
+	
+			-- Phase 1: fish until 9 cameras
+			createGlowLabel("STW: fishing for cameras...", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
+			while stwFarming and getCameraCount() < STW_CAMERA_TARGET do
+				while isSelling and stwFarming do task.wait(0.5) end
+				if not stwFarming then break end
+				if not ensureEquipped() then task.wait(1); continue end
+				castRod()
+				local fishingUI = PlayerGui:WaitForChild("FishingUI", 2)
+				local uiAppeared = false
+				if fishingUI then
+					if fishingUI.Enabled then
+						uiAppeared = true
+					else
+						local appeared = false
+						local conn = fishingUI:GetPropertyChangedSignal("Enabled"):Connect(function()
+							if fishingUI.Enabled then appeared = true end
+						end)
+						local t0 = os.clock()
+						while not appeared and stwFarming and (os.clock() - t0 < UI_TIMEOUT) do task.wait() end
+						conn:Disconnect()
+						uiAppeared = appeared or fishingUI.Enabled
+					end
+				end
+				if not stwFarming then break end
+				if not uiAppeared then equipRod(); task.wait(RE_CAST_DELAY); continue end
+				local spamStart = os.clock()
+				while stwFarming and not isSelling and isFishingUIActive() and (os.clock() - spamStart < MAX_SPAM_TIME) do
+					spamAction()
+				end
+				if not stwFarming then break end
+				equipRod(); task.wait(RE_CAST_DELAY)
 			end
-		end)
-	end
 	
-	-- =====================================================================
-	-- ESP UPDATE LOOP
-	-- =====================================================================
+			if not stwFarming then break end
+			unequipRod()
+			createGlowLabel("STW: collecting + using 50 arrows...", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
 	
-	task.spawn(function()
-		while true do
-			updateESP()
+			-- Phase 2: collect + use 50 arrows
+			arrowFarming = true
+			local slotted = itemExists("Stand Arrow")
+			if slotted then slotEquipArrow() end
+	
+			local function stwTryUseArrow()
+				if not isArrowEquipped() then
+					equipArrow()
+					local t0 = os.clock()
+					while stwFarming and arrowFarming and not isArrowEquipped() and os.clock() - t0 < 2 do
+						task.wait(0.1)
+					end
+				end
+				if not isArrowEquipped() then return end
+				useArrow(); task.wait(1)
+				storeStand(); task.wait(0.5)
+			end
+	
+			local usesCompleted = 0
+			while stwFarming and usesCompleted < STW_ARROW_TARGET do
+				local targets = getArrowTargets()
+				if #targets == 0 then
+					if getItemCount("Stand Arrow") > 0 then
+						stwTryUseArrow(); usesCompleted += 1
+					else
+						task.wait(1)
+					end
+					continue
+				end
+				for _, target in ipairs(targets) do
+					if not stwFarming or usesCompleted >= STW_ARROW_TARGET then break end
+					if not target.handle.Parent then continue end
+					tweenTo(target.handle.Position)
+					if not stwFarming then break end
+					task.wait(0.2)
+					local hadCount = getItemCount("Stand Arrow")
+					spamEOnTarget(target)
+					task.wait(0.5)
+					if not stwFarming then break end
+					local newCount = getItemCount("Stand Arrow")
+					if newCount > 0 and not slotted then slotEquipArrow(); slotted = true end
+					if newCount > hadCount then stwTryUseArrow(); usesCompleted += 1 end
+				end
+			end
+	
+			arrowFarming = false
+			clearESP()
+			if not stwFarming then break end
+	
+			-- Phase 3: equip The World + use cameras
+			createGlowLabel("STW: using cameras...", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
+			slotEquipCamera(); task.wait(0.3)
+			equipTheWorld(); task.wait(0.5)
+			while stwFarming and getCameraCount() > 0 do
+				equipCamera(); task.wait(0.5)
+				useCamera(); task.wait(0.5)
+				createOutputLabel("  cameras remaining: " .. getCameraCount(), Color3.fromRGB(150, 150, 150))
+			end
+	
+			if not stwFarming then break end
+	
+			-- Phase 4: return to dock and repeat
+			createGlowLabel("STW: returning to dock...", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
+			returnToDock()
 			task.wait(0.5)
 		end
-	end)
 	
-	-- =====================================================================
-	-- GUI (1006 panel)
-	-- =====================================================================
-	
-	local function createGUI()
-		local screenGui = Instance.new("ScreenGui")
-		screenGui.Name           = "1006"
-		screenGui.ResetOnSpawn   = false
-		screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		screenGui.Parent         = PlayerGui
-	
-		local Frame = Instance.new("Frame")
-		Frame.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-		Frame.BackgroundTransparency = 0.15
-		Frame.BorderSizePixel        = 0
-		Frame.Position               = UDim2.new(0.547749281, 0, 0.406552643, 0)
-		Frame.Size                   = UDim2.new(0, 549, 0, 430)
-		Frame.Parent                 = screenGui
-	
-		local dragBar = Instance.new("Frame")
-		dragBar.Size                  = UDim2.new(1, 0, 0, 28)
-		dragBar.BackgroundColor3      = Color3.fromRGB(20, 20, 30)
-		dragBar.BackgroundTransparency = 0.3
-		dragBar.BorderSizePixel       = 0
-		dragBar.ZIndex                = 5
-		dragBar.Parent                = Frame
-	
-		local dragLabel = Instance.new("TextLabel")
-		dragLabel.Size                  = UDim2.fromScale(1, 1)
-		dragLabel.BackgroundTransparency = 1
-		dragLabel.Text                  = "1006  ·  drag here"
-		dragLabel.TextColor3            = Color3.fromRGB(180, 180, 180)
-		dragLabel.TextSize              = 11
-		dragLabel.Font                  = Enum.Font.RobotoMono
-		dragLabel.ZIndex                = 6
-		dragLabel.Parent                = dragBar
-	
-		do
-			local dragging, dragStart, startPos
-			dragBar.InputBegan:Connect(function(inp)
-				if inp.UserInputType == Enum.UserInputType.MouseButton1
-					or inp.UserInputType == Enum.UserInputType.Touch then
-					dragging  = true
-					dragStart = inp.Position
-					startPos  = Frame.Position
-				end
-			end)
-			dragBar.InputChanged:Connect(function(inp)
-				if dragging and (
-					inp.UserInputType == Enum.UserInputType.MouseMovement
-						or inp.UserInputType == Enum.UserInputType.Touch
-					) then
-					local delta = inp.Position - dragStart
-					Frame.Position = UDim2.new(
-						startPos.X.Scale, startPos.X.Offset + delta.X,
-						startPos.Y.Scale, startPos.Y.Offset + delta.Y
-					)
-				end
-			end)
-			dragBar.InputEnded:Connect(function(inp)
-				if inp.UserInputType == Enum.UserInputType.MouseButton1
-					or inp.UserInputType == Enum.UserInputType.Touch then
-					dragging = false
-				end
-			end)
-		end
-	
-		local imageLabel = Instance.new("ImageLabel")
-		imageLabel.BackgroundTransparency = 1
-		imageLabel.BorderSizePixel        = 0
-		imageLabel.Position               = UDim2.new(0.587151587, 0, 0.45, 0)
-		imageLabel.Size                   = UDim2.new(0, 226, 0, 178)
-		imageLabel.Image                  = "rbxassetid://131218373267784"
-		imageLabel.ScaleType              = Enum.ScaleType.Fit
-		imageLabel.Parent                 = Frame
-	
-		local panel = Instance.new("Frame")
-		panel.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
-		panel.BackgroundTransparency = 0.75
-		panel.BorderSizePixel        = 0
-		panel.Position               = UDim2.new(0.0513506904, 0, 0.10, 0)
-		panel.Size                   = UDim2.new(0, 179, 0, 360)
-		panel.Parent                 = Frame
-	
-		local function makeBtn(text, yPos)
-			local btn = Instance.new("TextButton")
-			btn.BackgroundTransparency = 1
-			btn.BorderColor3           = Color3.fromRGB(48, 193, 255)
-			btn.Position               = UDim2.new(0.0623124614, 0, yPos, 0)
-			btn.Size                   = UDim2.new(0, 155, 0, 44)
-			btn.Font                   = Enum.Font.RobotoMono
-			btn.Text                   = text
-			btn.TextColor3             = Color3.fromRGB(255, 255, 255)
-			btn.TextSize               = 10
-			btn.Parent                 = panel
-			return btn
-		end
-	
-		local function makeLabel(text, yPos, color)
-			local lbl = Instance.new("TextLabel")
-			lbl.BackgroundTransparency = 1
-			lbl.BorderSizePixel        = 0
-			lbl.Position               = UDim2.new(0.07, 0, yPos, 0)
-			lbl.Size                   = UDim2.new(0, 155, 0, 24)
-			lbl.Font                   = Enum.Font.RobotoMono
-			lbl.Text                   = text
-			lbl.TextColor3             = color or Color3.fromRGB(255, 255, 255)
-			lbl.TextSize               = 10
-			lbl.Parent                 = panel
-			return lbl
-		end
-	
-		local sellBtn       = makeBtn("sell fishes",        0.03)
-		local startFishBtn  = makeBtn("start fishing farm", 0.16)
-		local startArrowBtn = makeBtn("start arrow farm",   0.29)
-		local useArrowsBtn  = makeBtn("use arrows",         0.42)
-		local stwBtn        = makeBtn("STW farm",           0.55)
-	
-		local statusLbl    = makeLabel("status: idle", 0.71, Color3.fromRGB(180, 180, 180))
-		local nextSellLbl  = makeLabel("next sell in:", 0.80, Color3.fromRGB(255, 255, 255))
-		local countdownLbl = makeLabel("10:00",         0.89, Color3.fromRGB(255, 0, 0))
-	
-		guiStatusLabel   = statusLbl
-		guiStartFishBtn  = startFishBtn
-		guiStartArrowBtn = startArrowBtn
-		guiSTWBtn        = stwBtn
-	
-		sellBtn.MouseButton1Click:Connect(function()
-			task.spawn(sellAllItems)
-		end)
-	
-		startFishBtn.MouseButton1Click:Connect(function()
-			if arrowFarming then arrowFarming = false; clearESP() end
-			fishing = not fishing
-			if fishing then
-				startFishBtn.Text       = "stop fishing farm"
-				startFishBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-				if farmThread then task.cancel(farmThread) end
-				farmThread = task.spawn(fishCycle)
-			else
-				startFishBtn.Text       = "start fishing farm"
-				startFishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				if farmThread then task.cancel(farmThread) end
-				setStatus("stopped")
-			end
-		end)
-	
-		startArrowBtn.MouseButton1Click:Connect(function()
-			if fishing then
-				fishing = false
-				if farmThread then task.cancel(farmThread) end
-				startFishBtn.Text       = "start fishing farm"
-				startFishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-			end
-			if arrowFarming then
-				arrowFarming = false
-				clearESP()
-				startArrowBtn.Text       = "start arrow farm"
-				startArrowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				setStatus("stopped")
-			else
-				startArrowBtn.Text       = "stop arrow farm"
-				startArrowBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-				task.spawn(startArrowFarm)
-			end
-		end)
-	
-		useArrowsBtn.MouseButton1Click:Connect(function()
-			if arrowFarming then
-				arrowFarming = false
-				clearESP()
-				useArrowsBtn.Text       = "use arrows"
-				useArrowsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				setStatus("stopped")
-				return
-			end
-			if fishing then
-				fishing = false
-				if farmThread then task.cancel(farmThread) end
-				startFishBtn.Text       = "start fishing farm"
-				startFishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-			end
-			useArrowsBtn.Text       = "stop using arrows"
-			useArrowsBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-			task.spawn(useArrowsCycle)
-		end)
-	
-		stwBtn.MouseButton1Click:Connect(function()
-			if stwFarming then
-				stwFarming = false; arrowFarming = false; fishing = false
-				clearESP()
-				stwBtn.Text             = "STW farm"
-				stwBtn.TextColor3       = Color3.fromRGB(255, 255, 255)
-				startFishBtn.Text       = "start fishing farm"
-				startFishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				setStatus("stopped")
-				return
-			end
-			fishing = false; arrowFarming = false; clearESP()
-			if farmThread then task.cancel(farmThread) end
-			startFishBtn.Text       = "start fishing farm"
-			startFishBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-			stwBtn.Text             = "stop STW farm"
-			stwBtn.TextColor3       = Color3.fromRGB(255, 100, 100)
-			task.spawn(stwFarmCycle)
-		end)
-	
-		task.spawn(function()
-			while screenGui and screenGui.Parent do
-				task.wait(1)
-				local remaining = math.max(0, math.floor(nextSellAt - os.clock()))
-				local mins = math.floor(remaining / 60)
-				local secs = remaining % 60
-				countdownLbl.Text = string.format("%d:%02d", mins, secs)
-				countdownLbl.TextColor3 = remaining < 60
-					and Color3.fromRGB(255, 80, 80)
-					or  Color3.fromRGB(255, 0, 0)
-			end
-		end)
-	
-		task.spawn(function()
-			while screenGui and screenGui.Parent do
-				task.wait(0.5)
-				if not arrowFarming then
-					startArrowBtn.Text       = "start arrow farm"
-					startArrowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-					useArrowsBtn.Text        = "use arrows"
-					useArrowsBtn.TextColor3  = Color3.fromRGB(255, 255, 255)
-				end
-				if not stwFarming then
-					stwBtn.Text       = "STW farm"
-					stwBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				end
-			end
-		end)
-	
-		return screenGui
+		arrowFarming = false
+		clearESP()
+		stwFarming = false
+		createGlowLabel("STW farm stopped.", Color3.fromRGB(180, 0, 0), Color3.fromRGB(255, 80, 80))
 	end
 	
 	-- =====================================================================
@@ -1384,26 +1067,27 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 			createGlowLabel("Available commands:", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 0))
-			createOutputLabel("  help              - shows this help menu")
-			createOutputLabel("  clear / cls       - clears the terminal")
-			createOutputLabel("  1006              - displays info about 1006")
-			createOutputLabel("  own               - shows ownership info")
-			createOutputLabel("  autofishing       - starts auto fishing")
-			createOutputLabel("  autofishing stop  - stops auto fishing")
-			createOutputLabel("  autosell          - sells all fish now")
-			createOutputLabel("  arrowfarm         - starts stand arrow farm")
-			createOutputLabel("  arrowfarm off     - stops stand arrow farm")
-			createOutputLabel("  usearrows         - uses arrows from inventory")
-			createOutputLabel("  stwfarmWIP           - starts STW farm (in WIP)")
-			createOutputLabel("  stwfarm off       - stops STW farm")
-			createOutputLabel("  eject             - destroys the terminal GUI")
+			createOutputLabel("  help             - shows this help menu")
+			createOutputLabel("  clear / cls      - clears the terminal")
+			createOutputLabel("  1006             - displays info about 1006")
+			createOutputLabel("  own              - shows ownership info")
+			createOutputLabel("  autofishing      - starts auto fishing")
+			createOutputLabel("  autofishing stop - stops auto fishing")
+			createOutputLabel("  autosell         - sells all fish now")
+			createOutputLabel("  arrowfarm        - starts stand arrow farm")
+			createOutputLabel("  arrowfarm off    - stops stand arrow farm")
+			createOutputLabel("  usearrows        - uses arrows from inventory")
+			createOutputLabel("  stwfarm          - starts STW farm cycle")
+			createOutputLabel("  stwfarm off      - stops STW farm cycle")
+			createOutputLabel("  eject            - destroys the terminal GUI")
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 	
 		elseif cmd == "1006" then
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 			createGlowLabel("[ 1006 ]", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
-			createOutputLabel("Version 1.0.0")
+			createOutputLabel("SCP-1006 Terminal System")
+			createOutputLabel("Version 2.0.0")
 			createGlowLabel("Status: ONLINE", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 	
@@ -1456,9 +1140,12 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 			if arrowFarming then
 				createGlowLabel("arrowfarm is already running.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
 			else
-				arrowFarming = true
-				task.spawn(startArrowFarm)
+				if fishing then
+					fishing = false
+					if farmThread then task.cancel(farmThread); farmThread = nil end
+				end
 				createGlowLabel("arrowfarm started.", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
+				task.spawn(startArrowFarm)
 			end
 	
 		elseif cmd == "arrowfarm off" then
@@ -1474,19 +1161,19 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 		elseif cmd == "usearrows" then
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			if arrowFarming then
-				createGlowLabel("already using arrows.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+				createGlowLabel("already running arrow cycle.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
 			else
 				createGlowLabel("using arrows from inventory...", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
 				task.spawn(useArrowsCycle)
 			end
 	
-		elseif cmd == "stwfarmWIP" then
+		elseif cmd == "stwfarm" then
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			if stwFarming then
 				createGlowLabel("STW farm is already running.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
 			else
 				fishing = false; arrowFarming = false; clearESP()
-				if farmThread then task.cancel(farmThread) end
+				if farmThread then task.cancel(farmThread); farmThread = nil end
 				createGlowLabel("STW farm started.", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
 				task.spawn(stwFarmCycle)
 			end
@@ -1528,13 +1215,11 @@ local function NTYNK_fake_script() -- ScrollingFrame.LocalScript
 	-- INIT
 	-- =====================================================================
 	
-	createGUI()
 	startSellTimer()
-	
 	print("=== 1006 Terminal Loaded ===")
 end
-coroutine.wrap(NTYNK_fake_script)()
-local function SXNDY_fake_script() -- mainframe.LocalScript 
+coroutine.wrap(TJVOBAR_fake_script)()
+local function FIJBFF_fake_script() -- mainframe.LocalScript 
 	local script = Instance.new('LocalScript', mainframe)
 
 	local UserInputService = game:GetService("UserInputService")
@@ -1547,4 +1232,4 @@ local function SXNDY_fake_script() -- mainframe.LocalScript
 			end
 		end)
 end
-coroutine.wrap(SXNDY_fake_script)()
+coroutine.wrap(FIJBFF_fake_script)()
