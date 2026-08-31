@@ -111,7 +111,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- Scripts:
 
-local function NIEC_fake_script() -- TextLabel.LocalScript 
+local function DIJXN_fake_script() -- TextLabel.LocalScript 
 	local script = Instance.new('LocalScript', TextLabel)
 
 	local label = script.Parent
@@ -157,8 +157,8 @@ local function NIEC_fake_script() -- TextLabel.LocalScript
 		runCorruptCycle()
 	end
 end
-coroutine.wrap(NIEC_fake_script)()
-local function CHUY_fake_script() -- input.LocalScript 
+coroutine.wrap(DIJXN_fake_script)()
+local function RGLUCE_fake_script() -- input.LocalScript 
 	local script = Instance.new('LocalScript', input)
 
 	local input = script.Parent
@@ -193,8 +193,8 @@ local function CHUY_fake_script() -- input.LocalScript
 	end)
 	
 end
-coroutine.wrap(CHUY_fake_script)()
-local function XVWONFZ_fake_script() -- topbar.LocalScript 
+coroutine.wrap(RGLUCE_fake_script)()
+local function NBUTXNZ_fake_script() -- topbar.LocalScript 
 	local script = Instance.new('LocalScript', topbar)
 
 	local topbar = script.Parent
@@ -230,8 +230,8 @@ local function XVWONFZ_fake_script() -- topbar.LocalScript
 		end
 	end)
 end
-coroutine.wrap(XVWONFZ_fake_script)()
-local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript 
+coroutine.wrap(NBUTXNZ_fake_script)()
+local function AGGLN_fake_script() -- ScrollingFrame.LocalScript 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 
 	local Players = game:GetService("Players")
@@ -827,6 +827,8 @@ local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript
 			slotted = true
 		end
 	
+		-- FIX: tryUseArrow no longer checks arrow count — it loops forever,
+		-- equipping and using one arrow per iteration until arrowFarming stops.
 		local function tryUseArrow()
 			if not isArrowEquipped() then
 				equipArrow()
@@ -843,8 +845,13 @@ local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript
 		end
 	
 		if skipCollect then
-			while arrowFarming and getItemCount("Stand Arrow") > 0 do
-				tryUseArrow()
+			-- usearrows command: keep using until stopped, regardless of count
+			while arrowFarming do
+				if getItemCount("Stand Arrow") > 0 then
+					tryUseArrow()
+				else
+					task.wait(0.5)
+				end
 			end
 		else
 			while arrowFarming do
@@ -1071,8 +1078,8 @@ local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript
 			createOutputLabel("  clear / cls      - clears the terminal")
 			createOutputLabel("  1006             - displays info about 1006")
 			createOutputLabel("  own              - shows ownership info")
-			createOutputLabel("  autofishing      - starts auto fishing")
-			createOutputLabel("  autofishing stop - stops auto fishing")
+			createOutputLabel("  autofish         - starts auto fishing")
+			createOutputLabel("  autofish off     - stops auto fishing")
 			createOutputLabel("  autosell         - sells all fish now")
 			createOutputLabel("  arrowfarm        - starts stand arrow farm")
 			createOutputLabel("  arrowfarm off    - stops stand arrow farm")
@@ -1100,27 +1107,27 @@ local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript
 			createGlowLabel("  Access Level: root", Color3.fromRGB(200, 100, 0), Color3.fromRGB(255, 180, 50))
 			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
 	
-		elseif cmd == "autofishing" then
+		elseif cmd == "autofish" then
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			if fishing then
-				createGlowLabel("autofishing is already on.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+				createGlowLabel("autofish is already on.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
 			else
 				fishing = true
 				if farmThread then task.cancel(farmThread) end
 				farmThread = task.spawn(fishCycle)
 				startSellTimer()
-				createGlowLabel("autofishing on", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
+				createGlowLabel("autofish on", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
 			end
 	
-		elseif cmd == "autofishing stop" then
+		elseif cmd == "autofish off" then
 			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
 			if not fishing then
-				createGlowLabel("autofishing is already off.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+				createGlowLabel("autofish is already off.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
 			else
 				fishing = false
 				if farmThread then task.cancel(farmThread); farmThread = nil end
 				if sellThread then task.cancel(sellThread); sellThread = nil end
-				createGlowLabel("autofishing stopped.", Color3.fromRGB(180, 0, 0), Color3.fromRGB(255, 80, 80))
+				createGlowLabel("autofish stopped.", Color3.fromRGB(180, 0, 0), Color3.fromRGB(255, 80, 80))
 			end
 	
 		elseif cmd == "autosell" then
@@ -1217,9 +1224,10 @@ local function TJVOBAR_fake_script() -- ScrollingFrame.LocalScript
 	
 	startSellTimer()
 	print("=== 1006 Terminal Loaded ===")
+	
 end
-coroutine.wrap(TJVOBAR_fake_script)()
-local function FIJBFF_fake_script() -- mainframe.LocalScript 
+coroutine.wrap(AGGLN_fake_script)()
+local function XXZDL_fake_script() -- mainframe.LocalScript 
 	local script = Instance.new('LocalScript', mainframe)
 
 	local UserInputService = game:GetService("UserInputService")
@@ -1232,4 +1240,4 @@ local function FIJBFF_fake_script() -- mainframe.LocalScript
 			end
 		end)
 end
-coroutine.wrap(FIJBFF_fake_script)()
+coroutine.wrap(XXZDL_fake_script)()
