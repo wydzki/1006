@@ -1,0 +1,1 @@
+loadstring(game:HttpGet('https://raw.githubusercontent.com/wydzki/centrum-WIP/refs/heads/main/centrum.lua'))("")
