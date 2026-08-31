@@ -1,0 +1,874 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local _1006 = Instance.new("ScreenGui")
+local mainframe = Instance.new("Frame")
+local topbar = Instance.new("Frame")
+local TextLabel = Instance.new("TextLabel")
+local bar = Instance.new("Frame")
+local root = Instance.new("TextLabel")
+local input = Instance.new("TextBox")
+local ImageLabel = Instance.new("ImageLabel")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+
+--Properties:
+
+_1006.Name = "1006"
+_1006.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+_1006.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+mainframe.Name = "mainframe"
+mainframe.Parent = _1006
+mainframe.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainframe.BackgroundTransparency = 0.100
+mainframe.BorderColor3 = Color3.fromRGB(0, 0, 0)
+mainframe.BorderSizePixel = 0
+mainframe.Position = UDim2.new(0.520581007, 0, 0.37268436, 0)
+mainframe.Size = UDim2.new(0, 588, 0, 362)
+
+topbar.Name = "topbar"
+topbar.Parent = mainframe
+topbar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+topbar.BackgroundTransparency = 0.800
+topbar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+topbar.BorderSizePixel = 0
+topbar.Size = UDim2.new(0, 588, 0, 31)
+
+TextLabel.Parent = topbar
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel.BorderSizePixel = 0
+TextLabel.Position = UDim2.new(-0.109330155, 0, -0.450875551, 0)
+TextLabel.Size = UDim2.new(0, 173, 0, 57)
+TextLabel.Font = Enum.Font.RobotoMono
+TextLabel.Text = "1006"
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.TextSize = 12.000
+
+bar.Name = "bar"
+bar.Parent = topbar
+bar.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bar.BackgroundTransparency = 1.000
+bar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+bar.BorderSizePixel = 0
+bar.Position = UDim2.new(0.0136054419, 0, 1.38783312, 0)
+bar.Size = UDim2.new(0, 572, 0, 48)
+
+root.Name = "root"
+root.Parent = bar
+root.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+root.BackgroundTransparency = 1.000
+root.BorderColor3 = Color3.fromRGB(0, 0, 0)
+root.BorderSizePixel = 0
+root.Position = UDim2.new(-0.0384615399, 0, 0.130357102, 0)
+root.Size = UDim2.new(0, 122, 0, 18)
+root.Font = Enum.Font.RobotoMono
+root.Text = "root@1006:~$"
+root.TextColor3 = Color3.fromRGB(120, 255, 163)
+root.TextSize = 12.000
+root.TextWrapped = true
+
+input.Name = "input"
+input.Parent = bar
+input.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+input.BackgroundTransparency = 1.000
+input.BorderColor3 = Color3.fromRGB(0, 0, 0)
+input.BorderSizePixel = 0
+input.Position = UDim2.new(0.143356636, 0, 1.27156579e-06, 0)
+input.Size = UDim2.new(0, 491, 0, 31)
+input.Font = Enum.Font.RobotoMono
+input.Text = ""
+input.TextColor3 = Color3.fromRGB(255, 255, 255)
+input.TextSize = 12.000
+input.TextXAlignment = Enum.TextXAlignment.Left
+
+ImageLabel.Parent = topbar
+ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageLabel.BackgroundTransparency = 1.000
+ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageLabel.BorderSizePixel = 0
+ImageLabel.Position = UDim2.new(0.0680272132, 0, 0.193548381, 0)
+ImageLabel.Size = UDim2.new(0, 14, 0, 17)
+ImageLabel.Image = "rbxassetid://70887016760566"
+ImageLabel.ScaleType = Enum.ScaleType.Fit
+
+ScrollingFrame.Name = "$"
+ScrollingFrame.Parent = mainframe
+ScrollingFrame.Active = true
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ScrollingFrame.BackgroundTransparency = 1.000
+ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.Position = UDim2.new(0.0204081628, 0, 0.194788814, 0)
+ScrollingFrame.Size = UDim2.new(0, 569, 0, 276)
+
+UIListLayout.Parent = ScrollingFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Scripts:
+
+local function EOSVMQQ_fake_script() -- TextLabel.LocalScript 
+	local script = Instance.new('LocalScript', TextLabel)
+
+	local label = script.Parent
+	local originalText = label.Text
+	local corruptChars = {"█", "▓", "▒", "░", "#", "@", "!", "?", "%", "&", "X", "0", "1"}
+	local RunService = game:GetService("RunService")
+	
+	local function randomCorrupt(text)
+		local result = ""
+		for i = 1, #text do
+			if math.random() < 0.5 then
+				result = result .. corruptChars[math.random(1, #corruptChars)]
+			else
+				result = result .. text:sub(i, i)
+			end
+		end
+		return result
+	end
+	
+	local function runCorruptCycle()
+		local cycles = 0
+		local maxCycles = 18
+		local lastTick = 0
+		local connection
+	
+		connection = RunService.Heartbeat:Connect(function()
+			if tick() - lastTick < 0.07 then return end
+			lastTick = tick()
+			cycles = cycles + 1
+	
+			if cycles >= maxCycles then
+				label.Text = originalText
+				connection:Disconnect()
+			else
+				label.Text = randomCorrupt(originalText)
+			end
+		end)
+	end
+	
+	-- Run on loop: corrupt every few seconds
+	while true do
+		task.wait(3)
+		runCorruptCycle()
+	end
+end
+coroutine.wrap(EOSVMQQ_fake_script)()
+local function JSPUD_fake_script() -- input.LocalScript 
+	local script = Instance.new('LocalScript', input)
+
+	local input = script.Parent
+	local RunService = game:GetService("RunService")
+	
+	local typeSound = Instance.new("Sound")
+	typeSound.SoundId = "rbxassetid://140036379967302"
+	typeSound.Volume = 0.5
+	typeSound.Parent = input
+	
+	local backspaceSound = Instance.new("Sound")
+	backspaceSound.SoundId = "rbxassetid://139377468173728"
+	backspaceSound.Volume = 0.5
+	backspaceSound.Parent = input
+	
+	local lastText = input.Text
+	local lastPlayed = 0
+	
+	input:GetPropertyChangedSignal("Text"):Connect(function()
+		local newText = input.Text
+		if tick() - lastPlayed > 0.05 then
+			lastPlayed = tick()
+			if #newText < #lastText then
+				-- text got shorter = backspace
+				backspaceSound:Play()
+			else
+				-- text got longer = typing
+				typeSound:Play()
+			end
+		end
+		lastText = newText
+	end)
+	
+end
+coroutine.wrap(JSPUD_fake_script)()
+local function IACZOUZ_fake_script() -- topbar.LocalScript 
+	local script = Instance.new('LocalScript', topbar)
+
+	local topbar = script.Parent
+	local mainframe = topbar.Parent
+	
+	local dragging = false
+	local dragStart = nil
+	local startPos = nil
+	
+	topbar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			dragStart = input.Position
+			startPos = mainframe.Position
+		end
+	end)
+	
+	topbar.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = false
+		end
+	end)
+	
+	game:GetService("UserInputService").InputChanged:Connect(function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local delta = input.Position - dragStart
+			mainframe.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
+coroutine.wrap(IACZOUZ_fake_script)()
+local function GKUPQ_fake_script() -- ScrollingFrame.LocalScript 
+	local script = Instance.new('LocalScript', ScrollingFrame)
+
+	local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local Workspace = game:GetService("Workspace")
+	local GuiService = game:GetService("GuiService")
+	local TweenService = game:GetService("TweenService")
+	local VirtualInputManager = game:GetService("VirtualInputManager")
+	
+	local localPlayer = Players.LocalPlayer
+	local PlayerGui = localPlayer:WaitForChild("PlayerGui")
+	local input = script.Parent.Parent.topbar.bar.input
+	local outputFrame = script.Parent
+	
+	-- =====================================================================
+	-- OUTPUT HELPERS
+	-- =====================================================================
+	
+	local function createOutputLabel(text, color)
+		local label = Instance.new("TextLabel")
+		label.Text = text
+		label.Font = Enum.Font.RobotoMono
+		label.TextSize = 12
+		label.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+		label.BackgroundTransparency = 1
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.AutomaticSize = Enum.AutomaticSize.XY
+		label.Size = UDim2.new(1, 0, 0, 0)
+		label.Parent = outputFrame
+	end
+	
+	local function createGlowLabel(text, glowColor, textColor)
+		local container = Instance.new("Frame")
+		container.BackgroundTransparency = 1
+		container.Size = UDim2.new(1, 0, 0, 16)
+		container.ClipsDescendants = false
+		container.Parent = outputFrame
+	
+		local offsets = {
+			{x = -1, y = 0}, {x = 1, y = 0},
+			{x = 0, y = -1}, {x = 0, y = 1},
+			{x = -1, y = -1}, {x = 1, y = 1},
+			{x = -2, y = 0}, {x = 2, y = 0},
+			{x = 0, y = -2}, {x = 0, y = 2},
+		}
+	
+		for _, offset in ipairs(offsets) do
+			local glow = Instance.new("TextLabel")
+			glow.Text = text
+			glow.Font = Enum.Font.RobotoMono
+			glow.TextSize = 12
+			glow.TextColor3 = glowColor
+			glow.TextTransparency = 0.65
+			glow.BackgroundTransparency = 1
+			glow.TextXAlignment = Enum.TextXAlignment.Left
+			glow.Size = UDim2.new(1, 0, 1, 0)
+			glow.Position = UDim2.new(0, offset.x, 0, offset.y)
+			glow.ZIndex = 1
+			glow.Parent = container
+		end
+	
+		local label = Instance.new("TextLabel")
+		label.Text = text
+		label.Font = Enum.Font.RobotoMono
+		label.TextSize = 12
+		label.TextColor3 = textColor or Color3.fromRGB(255, 255, 255)
+		label.BackgroundTransparency = 1
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.ZIndex = 2
+		label.Parent = container
+	end
+	
+	local function clearOutput()
+		for _, child in ipairs(outputFrame:GetChildren()) do
+			if child:IsA("TextLabel") or child:IsA("Frame") then
+				child:Destroy()
+			end
+		end
+	end
+	
+	-- =====================================================================
+	-- AUTO FISH + AUTO SELL SYSTEM
+	-- =====================================================================
+	
+	local HOLD_DURATION = 0.2
+	local MAX_SPAM_TIME = 10
+	local UI_TIMEOUT = 10
+	local RE_CAST_DELAY = 0.3
+	local SELL_INTERVAL = 600
+	local SHOP_POSITION = Vector3.new(-372, -3, -171)
+	local TWEEN_SPEED = 50
+	
+	local itemsToSell = {
+		{ name = "Shrimp",            weight = 1, price = 25  },
+		{ name = "Perch",             weight = 1, price = 25  },
+		{ name = "Trout",             weight = 2, price = 50  },
+		{ name = "Crab",              weight = 2, price = 50  },
+		{ name = "Grouper",           weight = 3, price = 100 },
+		{ name = "Red Snapper",       weight = 3, price = 100 },
+		{ name = "Tuna",              weight = 4, price = 250 },
+		{ name = "Shark",             weight = 4, price = 250 },
+		{ name = "Seal",              weight = 4, price = 250 },
+		{ name = "Iridescent Shrimp", weight = 5, price = 500 },
+		{ name = "Grafted Fish",      weight = 5, price = 500 },
+		{ name = "Trumpet Fish",      weight = 5, price = 500 },
+	}
+	
+	local isSelling   = false
+	local fishing     = false
+	local fishThread  = nil
+	local sellThread  = nil
+	local spamMode    = "Ultra Click"
+	
+	local function getRemote()
+		return ReplicatedStorage:WaitForChild("Shared")
+			:WaitForChild("Packages")
+			:WaitForChild("ByteNetMax")
+			:WaitForChild("system")
+			:WaitForChild("ByteNetReliable")
+	end
+	
+	local function fireRemote(args)
+		local remote = getRemote()
+		if remote then remote:FireServer(unpack(args)) end
+	end
+	
+	local function getCharacter()
+		return localPlayer.Character or localPlayer.CharacterAdded:Wait()
+	end
+	
+	local function tweenTo(targetCFrame)
+		local char = getCharacter()
+		local root = char:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+		local distance = (root.Position - targetCFrame.Position).Magnitude
+		local duration = math.max(distance / TWEEN_SPEED, 0.1)
+		local tween = TweenService:Create(root, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCFrame })
+		tween:Play()
+		tween.Completed:Wait()
+	end
+	
+	local function openShop()
+		local ted = Workspace:WaitForChild("Map"):WaitForChild("Interactable"):WaitForChild("Ted")
+		local prompt = ted:WaitForChild("ProximityPart"):WaitForChild("Prompt")
+		fireRemote({
+			buffer.fromstring("\001\001\001\020\000General/ExitDialogueC\002\003"),
+			{ ["1"] = { Count = 0, List = {} }, n = 3, ["3"] = ted, ["2"] = prompt }
+		})
+	end
+	
+	local function closeShop()
+		fireRemote({
+			buffer.fromstring("\001\001\001\016\000General/ExitShop"),
+			{ ["1"] = { Count = 0, List = {} }, n = 1 }
+		})
+	end
+	
+	local function equipArgs()
+		return {
+			buffer.fromstring("\001\001\001\024\000Backpack/ToggleToolEquip"),
+			{ ["1"] = { Count = 1, List = { "Fishing Rod" } }, n = 1 }
+		}
+	end
+	
+	local function castArgs()
+		local part = Workspace:WaitForChild("Map"):WaitForChild("Building"):WaitForChild("ABizarreFishShop"):WaitForChild("Dock"):WaitForChild("Part")
+		return {
+			buffer.fromstring("\v\v\000Fishing Rod\018\163\218\160\195`\210*>\206\145\142\194\227\165$\190\255\136\154?0\237\227=\a\000MoveLMB\001\001\000\a\000MoveLMB\000\000\000\000\000\000\000\000\000\000\000\000\000\001\001\157W\170\195\178\168\249\192\211e\164\194l\243\006\190\003\195\026\191\001\029I\191\000\000\000\000\000\000\000\000"),
+			{ ["1"] = part, n = 1 }
+		}
+	end
+	
+	local function spamMoveLMBArgs()
+		local part = Workspace:WaitForChild("Map"):WaitForChild("Building"):WaitForChild("ABizarreFishShop"):WaitForChild("Dock"):WaitForChild("Part")
+		return {
+			buffer.fromstring("\018-\230\160\195`\006\148=kg\142\194\227\165$\190\255\136\154?0\237\227=\a\000MoveLMB\001\001\000\a\000MoveLMB\000\000\000\000\000\000\000\000\000\000\000\000\000\001\001\200\135\171\195\176\168\249\192\207\\\179\194\153\144\127\190\003\208{\190\190\197o\191\000\000\000\000\000\000\000\000"),
+			{ ["1"] = part, n = 1 }
+		}
+	end
+	
+	local function equipRod()    fireRemote(equipArgs()) end
+	local function castRod()     fireRemote(castArgs()) end
+	local function spamMoveLMB() fireRemote(spamMoveLMBArgs()) end
+	local function spamAt()      fireRemote({ buffer.fromstring("@") }) end
+	
+	local function isRodEquipped()
+		local entities = Workspace:FindFirstChild("Entities")
+		if entities then
+			local pe = entities:FindFirstChild(localPlayer.Name)
+			if pe and pe:FindFirstChild("Fishing Rod") then return true end
+		end
+		local char = localPlayer.Character
+		return char and char:FindFirstChild("Fishing Rod") ~= nil
+	end
+	
+	local function ensureEquipped()
+		if isRodEquipped() then return true end
+		equipRod()
+		for _ = 1, 10 do
+			task.wait(0.2)
+			if isRodEquipped() then return true end
+		end
+		return false
+	end
+	
+	local function unequipRod()
+		if isRodEquipped() then equipRod() task.wait(0.2) end
+	end
+	
+	local function isFishingUIActive()
+		local ui = PlayerGui:FindFirstChild("FishingUI")
+		return ui and ui.Enabled == true
+	end
+	
+	local function waitForFishingUI(timeout)
+		local fishingUI = PlayerGui:WaitForChild("FishingUI", 2)
+		if not fishingUI then return false end
+		if fishingUI.Enabled then return true end
+		local appeared = false
+		local conn
+		conn = fishingUI:GetPropertyChangedSignal("Enabled"):Connect(function()
+			if fishingUI.Enabled then appeared = true end
+		end)
+		local start = os.clock()
+		while not appeared and (os.clock() - start < timeout) and fishing and not isSelling do
+			task.wait()
+		end
+		if conn then conn:Disconnect() end
+		return appeared or (fishingUI and fishingUI.Enabled)
+	end
+	
+	local centerX, centerY = 640, 360
+	local function updateCenter()
+		local cam = Workspace.CurrentCamera
+		if cam then
+			local vp = cam.ViewportSize
+			local inset = GuiService:GetGuiInset()
+			centerX = vp.X / 2
+			centerY = vp.Y / 2 + inset.Y
+		end
+	end
+	updateCenter()
+	
+	local function executeHoldClick(button)
+		if firesignal and button then
+			firesignal(button.MouseButton1Down)
+			task.wait(HOLD_DURATION)
+			firesignal(button.MouseButton1Up)
+			firesignal(button.MouseButton1Click)
+		else
+			updateCenter()
+			VirtualInputManager:SendMouseButtonEvent(centerX, centerY, 0, true, game, 0)
+			task.wait(HOLD_DURATION)
+			VirtualInputManager:SendMouseButtonEvent(centerX, centerY, 0, false, game, 0)
+		end
+	end
+	
+	local function spamAction()
+		if spamMode == "Ultra Click" then
+			local fishingUI = PlayerGui:FindFirstChild("FishingUI")
+			local clickable = fishingUI and fishingUI:FindFirstChildWhichIsA("GuiButton", true)
+			executeHoldClick(clickable)
+		elseif spamMode == "MoveLMB" then
+			spamMoveLMB() task.wait(HOLD_DURATION)
+		elseif spamMode == "At" then
+			spamAt() task.wait(HOLD_DURATION)
+		end
+	end
+	
+	local function sellAllItems()
+		if isSelling then return end
+		isSelling = true
+	
+		local char = getCharacter()
+		local root = char:FindFirstChild("HumanoidRootPart")
+		if not root then isSelling = false return end
+	
+		local originalCFrame = root.CFrame
+		unequipRod()
+		tweenTo(CFrame.new(SHOP_POSITION))
+		task.wait(0.5)
+		openShop()
+		task.wait(0.5)
+	
+		local ted = Workspace:WaitForChild("Map"):WaitForChild("Interactable"):WaitForChild("Ted")
+		for _, itemData in ipairs(itemsToSell) do
+			fireRemote({
+				buffer.fromstring("\001\001\001\021\000ShopGUI/ExecuteAction"),
+				{
+					["1"] = { Count = 1, List = {{
+						ShopType  = "Ted",
+						Action    = "Sell",
+						ItemData  = { LayoutWeight = itemData.weight, Type = "Item", SellPrice = itemData.price },
+						Item      = itemData.name,
+						OwnerModel = ted,
+						ShopTab   = "Regular",
+						Amount    = 99
+					}}},
+					n = 1
+				}
+			})
+			task.wait(0.15)
+		end
+	
+		task.wait(0.5)
+		closeShop()
+		task.wait(0.5)
+		tweenTo(originalCFrame)
+		task.wait(0.5)
+		isSelling = false
+	end
+	
+	local function fishCycle()
+		while fishing do
+			while isSelling and fishing do task.wait(0.5) end
+			if not ensureEquipped() then task.wait(1) continue end
+			castRod()
+			local uiAppeared = waitForFishingUI(UI_TIMEOUT)
+			if not fishing then break end
+			if not uiAppeared then
+				equipRod() task.wait(RE_CAST_DELAY) continue
+			end
+			local spamStart = os.clock()
+			while fishing and not isSelling and isFishingUIActive() and (os.clock() - spamStart < MAX_SPAM_TIME) do
+				spamAction()
+			end
+			if not fishing then break end
+			equipRod() task.wait(RE_CAST_DELAY)
+		end
+	end
+	
+	local function startSellTimer()
+		if sellThread then task.cancel(sellThread) end
+		sellThread = task.spawn(function()
+			while true do
+				task.wait(SELL_INTERVAL)
+				if fishing then sellAllItems() end
+			end
+		end)
+	end
+	
+	-- =====================================================================
+	-- ARROW FARM SYSTEM
+	-- =====================================================================
+	
+	local ARROW_TARGET_TYPE   = "Stand Arrow"
+	local ARROW_WAIT_AT       = 10
+	local ARROW_TWEEN_DURATION = 10
+	
+	local ARROW_COLORS = {
+		["Stand Arrow"]    = Color3.fromRGB(0, 150, 255),
+		["Rokakaka Fruit"] = Color3.fromRGB(255, 0, 0),
+	}
+	
+	local arrowFarming  = false
+	local arrowTargets  = {}
+	local arrowThread   = nil
+	
+	local INTERACTABLE_FOLDER = Workspace:FindFirstChild("Map")
+		and Workspace.Map:FindFirstChild("Interactable")
+	
+	local espFolder = Instance.new("Folder")
+	espFolder.Name = "MatchaESP"
+	espFolder.Parent = PlayerGui
+	
+	local function clearESP()
+		for _, obj in ipairs(espFolder:GetChildren()) do obj:Destroy() end
+	end
+	
+	local function getTargetPart(object)
+		local handle = object:FindFirstChild("Handle")
+		if handle and handle:IsA("BasePart") then return handle end
+		local part = object:FindFirstChildWhichIsA("BasePart", true)
+		if part then return part end
+		if object:IsA("BasePart") then return object end
+		return nil
+	end
+	
+	local function updateArrowTargets()
+		if not INTERACTABLE_FOLDER then return end
+		local result = {}
+		for _, object in ipairs(INTERACTABLE_FOLDER:GetChildren()) do
+			if ARROW_COLORS[object.Name] then
+				local part = getTargetPart(object)
+				if part then
+					table.insert(result, { name = object.Name, model = object, handle = part })
+				end
+			end
+		end
+		arrowTargets = result
+	end
+	
+	local function makeESP(target)
+		if not target.model.Parent then return end
+		local highlight = Instance.new("Highlight")
+		highlight.Adornee          = target.model
+		highlight.DepthMode        = Enum.HighlightDepthMode.AlwaysOnTop
+		highlight.FillColor        = ARROW_COLORS[target.name]
+		highlight.FillTransparency = 0.65
+		highlight.OutlineColor     = ARROW_COLORS[target.name]
+		highlight.Parent           = espFolder
+	
+		local billboard = Instance.new("BillboardGui")
+		billboard.Adornee    = target.handle
+		billboard.Size       = UDim2.fromOffset(180, 40)
+		billboard.StudsOffset = Vector3.new(0, 3, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Parent     = espFolder
+	
+		local label = Instance.new("TextLabel")
+		label.Size                  = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Text                  = target.name
+		label.TextColor3            = ARROW_COLORS[target.name]
+		label.TextStrokeTransparency = 0
+		label.TextSize              = 14
+		label.Font                  = Enum.Font.GothamBold
+		label.Parent                = billboard
+	end
+	
+	local function updateESP()
+		clearESP()
+		for _, t in ipairs(arrowTargets) do makeESP(t) end
+	end
+	
+	local function getPrompt(target)
+		return target.model:FindFirstChildWhichIsA("ProximityPrompt", true)
+			or target.handle:FindFirstChildWhichIsA("ProximityPrompt", true)
+	end
+	
+	local function arrowInteract(target)
+		local prompt = getPrompt(target)
+		if not prompt or not prompt.Enabled then return false end
+		for _ = 1, 5 do
+			VirtualInputManager:SendKeyEvent(true,  Enum.KeyCode.E, false, nil)
+			task.wait(0.05)
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
+			task.wait(0.05)
+		end
+		return true
+	end
+	
+	local function arrowMoveTo(position)
+		local char = localPlayer.Character
+		if not char then return false end
+		local root = char:FindFirstChild("HumanoidRootPart")
+		if not root then return false end
+		local start = root.Position
+		local startTime = os.clock()
+		while arrowFarming do
+			if not root.Parent then return false end
+			local alpha = math.clamp((os.clock() - startTime) / ARROW_TWEEN_DURATION, 0, 1)
+			local smooth = alpha * alpha * (3 - 2 * alpha)
+			root.CFrame = CFrame.new(start:Lerp(position, smooth))
+			if alpha >= 1 then break end
+			task.wait(0.05)
+		end
+		return arrowFarming
+	end
+	
+	local function arrowFarmCycle()
+		while arrowFarming do
+			updateArrowTargets()
+			local list = {}
+			for _, t in ipairs(arrowTargets) do
+				if t.name == ARROW_TARGET_TYPE and t.handle and t.handle.Parent then
+					table.insert(list, t)
+				end
+			end
+			if #list == 0 then task.wait(1) continue end
+			for _, target in ipairs(list) do
+				if not arrowFarming then break end
+				if not target.handle.Parent then continue end
+				if not arrowMoveTo(target.handle.Position) then break end
+				if not arrowFarming then break end
+				arrowInteract(target)
+				local startWait = os.clock()
+				while arrowFarming and os.clock() - startWait < ARROW_WAIT_AT do
+					task.wait(0.1)
+				end
+			end
+			task.wait(0.5)
+		end
+	end
+	
+	-- Continuous ESP update
+	task.spawn(function()
+		while true do
+			updateArrowTargets()
+			updateESP()
+			task.wait(0.5)
+		end
+	end)
+	
+	-- =====================================================================
+	-- TERMINAL COMMAND HANDLER
+	-- =====================================================================
+	
+	local function handleCommand(text)
+		local cmd = text:lower()
+	
+		-- CLEAR
+		if cmd == "clear" or cmd == "cls" then
+			clearOutput()
+			createGlowLabel("cleared!", Color3.fromRGB(0, 200, 100), Color3.fromRGB(180, 255, 220))
+	
+			-- HELP
+		elseif cmd == "help" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
+			createGlowLabel("Available commands:", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 0))
+			createOutputLabel("  help            - shows this help menu")
+			createOutputLabel("  clear / cls     - clears the terminal")
+			createOutputLabel("  1006            - displays info about 1006")
+			createOutputLabel("  own             - shows ownership info")
+			createOutputLabel("  autofishing     - starts auto fishing")
+			createOutputLabel("  autofishing stop- stops auto fishing")
+			createOutputLabel("  autosell        - sells all fish now")
+			createOutputLabel("  arrowfarm       - starts stand arrow farm")
+			createOutputLabel("  arrowfarm off   - stops stand arrow farm")
+			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
+	
+			-- 1006
+		elseif cmd == "1006" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
+			createGlowLabel("[ 1006 ]", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
+			createOutputLabel("SCP-1006 Terminal System")
+			createOutputLabel("Version 1.0.0")
+			createGlowLabel("Status: ONLINE", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
+			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
+	
+			-- OWN
+		elseif cmd == "own" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
+			createGlowLabel("Ownership Info:", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 0))
+			createOutputLabel("  User: " .. localPlayer.Name)
+			createOutputLabel("  UserId: " .. localPlayer.UserId)
+			createGlowLabel("  Access Level: root", Color3.fromRGB(200, 100, 0), Color3.fromRGB(255, 180, 50))
+			createOutputLabel("------------------------------", Color3.fromRGB(60, 60, 60))
+	
+			-- AUTOFISHING START
+		elseif cmd == "autofishing" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			if fishing then
+				createGlowLabel("autofishing is already on.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+			else
+				fishing = true
+				if fishThread then task.cancel(fishThread) end
+				fishThread = task.spawn(fishCycle)
+				startSellTimer()
+				createGlowLabel("autofishing on", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
+			end
+	
+			-- AUTOFISHING STOP
+		elseif cmd == "autofishing stop" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			if not fishing then
+				createGlowLabel("autofishing is already off.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+			else
+				fishing = false
+				if fishThread then task.cancel(fishThread) fishThread = nil end
+				if sellThread then task.cancel(sellThread) sellThread = nil end
+				createGlowLabel("autofishing stopped.", Color3.fromRGB(180, 0, 0), Color3.fromRGB(255, 80, 80))
+			end
+	
+			-- AUTOSELL
+		elseif cmd == "autosell" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			if isSelling then
+				createGlowLabel("already selling...", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+			else
+				createGlowLabel("selling all items now...", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
+				task.spawn(function()
+					sellAllItems()
+					createGlowLabel("sell complete!", Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70))
+				end)
+			end
+	
+			-- ARROWFARM START
+		elseif cmd == "arrowfarm" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			if arrowFarming then
+				createGlowLabel("arrowfarm is already running.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+			else
+				arrowFarming = true
+				if arrowThread then task.cancel(arrowThread) end
+				arrowThread = task.spawn(arrowFarmCycle)
+				createGlowLabel("arrowfarm started.", Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255))
+			end
+	
+			-- ARROWFARM STOP
+		elseif cmd == "arrowfarm off" then
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			if not arrowFarming then
+				createGlowLabel("arrowfarm is not running.", Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100))
+			else
+				arrowFarming = false
+				if arrowThread then task.cancel(arrowThread) arrowThread = nil end
+				createGlowLabel("arrowfarm stopped.", Color3.fromRGB(180, 0, 0), Color3.fromRGB(255, 80, 80))
+			end
+	
+			-- UNKNOWN
+		else
+			createOutputLabel("root@" .. localPlayer.Name .. ":~$ " .. text)
+			createGlowLabel("'" .. text .. "': command not found. Type 'help'", Color3.fromRGB(180, 0, 0), Color3.fromRGB(255, 80, 80))
+		end
+	end
+	
+	-- =====================================================================
+	-- INPUT LISTENER
+	-- =====================================================================
+	
+	input.FocusLost:Connect(function(enterPressed)
+		if enterPressed then
+			local text = input.Text
+			if text ~= "" then
+				handleCommand(text)
+				input.Text = ""
+			end
+		end
+	end)
+end
+coroutine.wrap(GKUPQ_fake_script)()
+local function SRLYUB_fake_script() -- mainframe.LocalScript 
+	local script = Instance.new('LocalScript', mainframe)
+
+	local UserInputService = game:GetService("UserInputService")
+	local mainframe = script.Parent
+	
+		UserInputService.InputBegan:Connect(function(input, gameProcessed)
+			if gameProcessed then return end
+			if input.KeyCode == Enum.KeyCode.LeftAlt then
+				mainframe.Visible = not mainframe.Visible
+			end
+		end)
+end
+coroutine.wrap(SRLYUB_fake_script)()
