@@ -111,7 +111,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- Scripts:
 
-local function WNJD_fake_script() -- TextLabel.LocalScript 
+local function LWXAO_fake_script() -- TextLabel.LocalScript 
 	local script = Instance.new('LocalScript', TextLabel)
 
 	local label = script.Parent
@@ -157,8 +157,8 @@ local function WNJD_fake_script() -- TextLabel.LocalScript
 		runCorruptCycle()
 	end
 end
-coroutine.wrap(WNJD_fake_script)()
-local function XKQCW_fake_script() -- input.LocalScript 
+coroutine.wrap(LWXAO_fake_script)()
+local function RSMJQM_fake_script() -- input.LocalScript 
 	local script = Instance.new('LocalScript', input)
 
 	local input = script.Parent
@@ -193,8 +193,8 @@ local function XKQCW_fake_script() -- input.LocalScript
 	end)
 	
 end
-coroutine.wrap(XKQCW_fake_script)()
-local function GAVXIOK_fake_script() -- topbar.LocalScript 
+coroutine.wrap(RSMJQM_fake_script)()
+local function MGKIGX_fake_script() -- topbar.LocalScript 
 	local script = Instance.new('LocalScript', topbar)
 
 	local topbar = script.Parent
@@ -230,8 +230,8 @@ local function GAVXIOK_fake_script() -- topbar.LocalScript
 		end
 	end)
 end
-coroutine.wrap(GAVXIOK_fake_script)()
-local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript 
+coroutine.wrap(MGKIGX_fake_script)()
+local function HABUUQ_fake_script() -- ScrollingFrame.LocalScript 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 
 	local Players = game:GetService("Players")
@@ -324,6 +324,9 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 	local CAMERA_THRESHOLD  = 9
 	local STW_CAMERA_TARGET = 9
 	local STW_ARROW_TARGET  = 50
+	
+	-- Arrow farm: collect until this cap, then use all, wait until 1, repeat
+	local ARROW_CAP         = 99
 	
 	local SHOP_POSITION  = Vector3.new(-372, -3, -171)
 	local DOCK_POSITIONS = {
@@ -436,10 +439,21 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 	end
 	
 	local function getItemCount(itemName)
+		-- Primary: Data.Storage.Items
 		local items = getItemsFolder()
-		if not items then return 0 end
-		local v = items:FindFirstChild(itemName)
-		if v and v:IsA("NumberValue") then return v.Value end
+		if items then
+			local v = items:FindFirstChild(itemName)
+			if v and v:IsA("NumberValue") then return v.Value end
+		end
+		-- Fallback: TemporaryData.EquippedItems
+		local tempData = localPlayer:FindFirstChild("TemporaryData")
+		if tempData then
+			local equipped = tempData:FindFirstChild("EquippedItems")
+			if equipped then
+				local v = equipped:FindFirstChild(itemName)
+				if v and v:IsA("NumberValue") then return v.Value end
+			end
+		end
 		return 0
 	end
 	
@@ -644,6 +658,33 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 	end
 	
 	-- =====================================================================
+	-- E-SPAM PICKUP  (fixed: no ProximityPrompt assumption)
+	-- =====================================================================
+	
+	--[[
+		Stand Arrows in the world are picked up by:
+		1. Walking close enough that the game registers proximity
+		2. Sending E key-down/up events via VirtualInputManager
+	
+		We spam E rapidly while standing near the arrow model so the game
+		catches the input during its proximity check window.
+		We do NOT look for a ProximityPrompt because world-spawned arrows
+		don't always expose one.
+	--]]
+	
+	local E_SPAM_COUNT    = 12   -- how many E presses per target visit
+	local E_SPAM_INTERVAL = 0.04 -- seconds between each press
+	
+	local function spamEPickup()
+		for _ = 1, E_SPAM_COUNT do
+			VirtualInputManager:SendKeyEvent(true,  Enum.KeyCode.E, false, nil)
+			task.wait(E_SPAM_INTERVAL)
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
+			task.wait(E_SPAM_INTERVAL)
+		end
+	end
+	
+	-- =====================================================================
 	-- SELL ROUTINE
 	-- =====================================================================
 	
@@ -654,7 +695,6 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 		local root = getRoot()
 		if not root then isSelling = false return end
 	
-		-- Check if there's actually anything to sell before moving
 		local itemsFolder = getItemsFolder()
 		local hasSomething = false
 		if itemsFolder then
@@ -679,11 +719,9 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 		task.wait(0.5)
 	
 		local ted = Workspace:WaitForChild("Map"):WaitForChild("Interactable"):WaitForChild("Ted")
-		-- Re-fetch folder in case it refreshed
 		itemsFolder = getItemsFolder()
 	
 		for _, itemData in ipairs(itemsToSell) do
-			-- Read live count from Data.Storage.Items
 			local amount = 0
 			if itemsFolder then
 				local v = itemsFolder:FindFirstChild(itemData.name)
@@ -720,7 +758,6 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 		isSelling = false
 	end
 	
-	-- Sell timer only runs while autofish is active
 	local function startSellTimer()
 		if sellThread then task.cancel(sellThread) end
 		sellThread = task.spawn(function()
@@ -833,98 +870,179 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 	end)
 	
 	-- =====================================================================
-	-- PROXIMITY PROMPT E-SPAM
+	-- ARROW USE HELPER (shared between arrowfarm and stw)
 	-- =====================================================================
 	
-	local function spamEOnTarget(target)
-		local prompt = target.model:FindFirstChildWhichIsA("ProximityPrompt", true)
-			or target.handle:FindFirstChildWhichIsA("ProximityPrompt", true)
-		if not prompt or not prompt.Enabled then return false end
-		for _ = 1, 5 do
-			VirtualInputManager:SendKeyEvent(true,  Enum.KeyCode.E, false, nil)
-			task.wait(0.05)
-			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
-			task.wait(0.05)
+	local function tryUseArrow(guardFlag)
+		-- guardFlag is a function() returning true if we should keep going
+		if not isArrowEquipped() then
+			equipArrow()
+			local t0 = os.clock()
+			while guardFlag() and not isArrowEquipped() and os.clock() - t0 < 2 do
+				task.wait(0.1)
+			end
 		end
-		return true
+		if not isArrowEquipped() then return end
+		useArrow()
+		task.wait(1)
+		storeStand()
+		task.wait(0.5)
 	end
 	
 	-- =====================================================================
-	-- ARROW FARM CYCLE
+	-- ARROW FARM CYCLE  (fixed + 99-cap restart loop)
 	-- =====================================================================
+	
+	--[[
+		Flow:
+		  COLLECT phase:
+		    - Walk to every visible Stand Arrow, spam E to pick it up
+		    - Also use any arrows already in inventory along the way
+		    - Stop collecting when inventory hits ARROW_CAP (99)
+	
+		  USE phase:
+		    - Use every arrow in inventory until count == 0
+	
+		  WAIT phase:
+		    - Poll getItemCount("Stand Arrow") until value reaches 1
+		      (i.e. the game has reset / refilled the first arrow)
+		    - Then restart from COLLECT phase
+	--]]
 	
 	local function arrowFarmCycle(skipCollect)
 		arrowFarming = true
-		local slotted = false
 	
+		-- Slot the arrow into the hotbar once if we already own some
+		local slotted = false
 		if itemExists("Stand Arrow") then
 			slotEquipArrow()
 			slotted = true
 		end
 	
-		local function tryUseArrow()
-			if not isArrowEquipped() then
-				equipArrow()
-				local t0 = os.clock()
-				while arrowFarming and not isArrowEquipped() and os.clock() - t0 < 2 do
-					task.wait(0.1)
-				end
-			end
-			if not isArrowEquipped() then return end
-			useArrow()
-			task.wait(1)
-			storeStand()
-			task.wait(0.5)
-		end
+		-- Shared guard so inner loops can check arrowFarming easily
+		local function stillFarming() return arrowFarming end
 	
 		if skipCollect then
-			-- usearrows: drain inventory arrows, then stop cleanly
+			-- "usearrows" command: just drain whatever is in inventory and stop
 			while arrowFarming do
 				local count = getItemCount("Stand Arrow")
 				if count > 0 then
-					tryUseArrow()
+					tryUseArrow(stillFarming)
 				else
-					-- no arrows left — exit instead of spinning forever
 					arrowFarming = false
 					break
 				end
 			end
-		else
-			while arrowFarming do
+			clearESP()
+			return
+		end
+	
+		-- ---------------------------------------------------------------
+		-- Main loop: COLLECT → USE → WAIT → repeat
+		-- ---------------------------------------------------------------
+		while arrowFarming do
+	
+			-- ============================================================
+			-- COLLECT PHASE — roam targets, spam E, pick up arrows
+			-- ============================================================
+			createGlowLabel(
+				"arrowfarm: collecting… (" .. getItemCount("Stand Arrow") .. "/" .. ARROW_CAP .. ")",
+				Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255)
+			)
+	
+			while arrowFarming and getItemCount("Stand Arrow") < ARROW_CAP do
 				local targets = getArrowTargets()
+	
 				if #targets == 0 then
+					-- No world arrows visible; use any we already have, then wait
 					if getItemCount("Stand Arrow") > 0 then
-						tryUseArrow()
+						tryUseArrow(stillFarming)
 					else
 						task.wait(1)
 					end
-					continue
-				end
-				for _, target in ipairs(targets) do
-					if not arrowFarming then break end
-					if not target.handle.Parent then continue end
-					tweenTo(target.handle.Position)
-					if not arrowFarming then break end
-					task.wait(0.2)
-					local hadCount = getItemCount("Stand Arrow")
-					spamEOnTarget(target)
-					task.wait(0.5)
-					if not arrowFarming then break end
-					local newCount = getItemCount("Stand Arrow")
-					if newCount > 0 and not slotted then
-						slotEquipArrow()
-						slotted = true
-					end
-					if newCount > hadCount then
-						tryUseArrow()
-					end
-				end
-			end
-		end
+				else
+					for _, target in ipairs(targets) do
+						if not arrowFarming then break end
+						if getItemCount("Stand Arrow") >= ARROW_CAP then break end
+						if not target.handle.Parent then continue end
 	
-		if not arrowFarming then
-			clearESP()
-			return
+						-- Walk right on top of the arrow
+						tweenTo(target.handle.Position, ARROW_TWEEN_SPEED)
+						if not arrowFarming then break end
+	
+						task.wait(0.15)
+	
+						local before = getItemCount("Stand Arrow")
+	
+						-- Spam E to pick it up (no ProximityPrompt needed)
+						spamEPickup()
+	
+						task.wait(0.3)
+	
+						local after = getItemCount("Stand Arrow")
+	
+						-- Slot the hotbar entry the first time we get one
+						if after > 0 and not slotted then
+							slotEquipArrow()
+							slotted = true
+						end
+	
+						-- If we picked something up and have room, use a queued
+						-- arrow to avoid sitting at cap with nothing to do
+						if after > before and after < ARROW_CAP then
+							-- optional: use one now to keep rolling
+							-- (comment this block out if you'd rather batch them)
+							tryUseArrow(stillFarming)
+						end
+					end
+				end
+	
+				task.wait(0.1)
+			end
+	
+			if not arrowFarming then break end
+	
+			-- ============================================================
+			-- USE PHASE — burn through the whole inventory
+			-- ============================================================
+			createGlowLabel(
+				"arrowfarm: using all arrows… (" .. getItemCount("Stand Arrow") .. " remaining)",
+				Color3.fromRGB(0, 150, 255), Color3.fromRGB(100, 200, 255)
+			)
+	
+			while arrowFarming and getItemCount("Stand Arrow") > 0 do
+				tryUseArrow(stillFarming)
+				createOutputLabel(
+					"  arrows left: " .. getItemCount("Stand Arrow"),
+					Color3.fromRGB(150, 150, 150)
+				)
+			end
+	
+			if not arrowFarming then break end
+	
+			-- ============================================================
+			-- WAIT PHASE — poll until the inventory value reaches 1
+			-- (game has given us the next arrow / respawned the pool)
+			-- ============================================================
+			createGlowLabel(
+				"arrowfarm: waiting for next arrow (count = 1)…",
+				Color3.fromRGB(180, 180, 0), Color3.fromRGB(255, 255, 100)
+			)
+	
+			returnToDock()
+	
+			while arrowFarming and getItemCount("Stand Arrow") < 1 do
+				task.wait(1)
+			end
+	
+			if not arrowFarming then break end
+	
+			-- Brief pause before starting the next collect phase
+			task.wait(1)
+			createGlowLabel(
+				"arrowfarm: restarting collect phase…",
+				Color3.fromRGB(0, 180, 50), Color3.fromRGB(0, 255, 70)
+			)
 		end
 	
 		returnToDock()
@@ -1027,25 +1145,14 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 			local slotted = itemExists("Stand Arrow")
 			if slotted then slotEquipArrow() end
 	
-			local function stwTryUseArrow()
-				if not isArrowEquipped() then
-					equipArrow()
-					local t0 = os.clock()
-					while stwFarming and arrowFarming and not isArrowEquipped() and os.clock() - t0 < 2 do
-						task.wait(0.1)
-					end
-				end
-				if not isArrowEquipped() then return end
-				useArrow(); task.wait(1)
-				storeStand(); task.wait(0.5)
-			end
+			local function stwGuard() return stwFarming and arrowFarming end
 	
 			local usesCompleted = 0
 			while stwFarming and usesCompleted < STW_ARROW_TARGET do
 				local targets = getArrowTargets()
 				if #targets == 0 then
 					if getItemCount("Stand Arrow") > 0 then
-						stwTryUseArrow(); usesCompleted += 1
+						tryUseArrow(stwGuard); usesCompleted += 1
 					else
 						task.wait(1)
 					end
@@ -1054,16 +1161,16 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 				for _, target in ipairs(targets) do
 					if not stwFarming or usesCompleted >= STW_ARROW_TARGET then break end
 					if not target.handle.Parent then continue end
-					tweenTo(target.handle.Position)
+					tweenTo(target.handle.Position, ARROW_TWEEN_SPEED)
 					if not stwFarming then break end
-					task.wait(0.2)
-					local hadCount = getItemCount("Stand Arrow")
-					spamEOnTarget(target)
+					task.wait(0.15)
+					local before = getItemCount("Stand Arrow")
+					spamEPickup()   -- use the fixed E-spam, not the old ProximityPrompt version
 					task.wait(0.5)
 					if not stwFarming then break end
-					local newCount = getItemCount("Stand Arrow")
-					if newCount > 0 and not slotted then slotEquipArrow(); slotted = true end
-					if newCount > hadCount then stwTryUseArrow(); usesCompleted += 1 end
+					local after = getItemCount("Stand Arrow")
+					if after > 0 and not slotted then slotEquipArrow(); slotted = true end
+					if after > before then tryUseArrow(stwGuard); usesCompleted += 1 end
 				end
 			end
 	
@@ -1260,8 +1367,8 @@ local function XCHDUSE_fake_script() -- ScrollingFrame.LocalScript
 	
 	print("=== 1006 Terminal Loaded ===")
 end
-coroutine.wrap(XCHDUSE_fake_script)()
-local function MVQWXLC_fake_script() -- mainframe.LocalScript 
+coroutine.wrap(HABUUQ_fake_script)()
+local function JAEZQO_fake_script() -- mainframe.LocalScript 
 	local script = Instance.new('LocalScript', mainframe)
 
 	local UserInputService = game:GetService("UserInputService")
@@ -1274,4 +1381,4 @@ local function MVQWXLC_fake_script() -- mainframe.LocalScript
 			end
 		end)
 end
-coroutine.wrap(MVQWXLC_fake_script)()
+coroutine.wrap(JAEZQO_fake_script)()
